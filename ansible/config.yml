@@ -1,0 +1,13 @@
+---
+- hosts: localhost
+  vars_files:
+    - secrets.yml
+  tasks:
+    - name: Create or update key/value pair in aws parameter store
+      aws_ssm_parameter_store:
+        profile: "elidebi"
+        name: "{{ item.key }}"
+        value: "{{ item.value }}"
+      with_dict: "{{ secrets }}"
+        
+    

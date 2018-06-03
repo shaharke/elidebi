@@ -1,0 +1,38 @@
+# Welcome to Serverless!
+#
+# This file is the main config file for your service.
+# It's very minimal at this point and uses default values.
+# You can always add more config options for more control.
+# We've included some commented out config examples here.
+# Just uncomment any of them to get that config option.
+#
+# For full config options, check the docs:
+#    docs.serverless.com
+#
+# Happy Coding!
+
+service: elidebi-login
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  stage: dev
+  region: eu-central-1
+  profile: elidebi
+  
+  environment: 
+      RDS_ENDPOINT: ${ssm:rds_endpoint}
+      RDS_ADMIN: ${ssm:rds_admin}
+      RDS_PASSWORD: ${ssm:rds_password}
+  
+
+functions:
+  
+  login:
+    handler: login.do
+    events:
+      - http:
+          path: login
+          method: post
+          cors:
+            origin: 'https://www.hadamba.com'
