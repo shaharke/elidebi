@@ -9,8 +9,5 @@
         name: "{{ item.key }}"
         value: "{{ item.value }}"
       with_dict: "{{ secrets }}"
-
-    #- name: lookup ssm parameter store in nominated aws profile
-    #  debug: msg="{{ lookup('aws_ssm', '{{item.key}}', aws_profile='elidebi' ) }}"
-    #  with_dict: "{{ secrets }}"
+        
     
