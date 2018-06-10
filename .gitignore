@@ -62,3 +62,6 @@ typings/
 
 # Ansible
 ansible/vault-pass
+
+# Serverless
+server/.serverless/
