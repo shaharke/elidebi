@@ -62,3 +62,11 @@ functions:
           path: members
           method: get
           private: true
+
+  login:
+    handler: login.do
+    events:
+      - http:
+          path: login
+          method: post
+          private: true
