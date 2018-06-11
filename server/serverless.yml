@@ -16,7 +16,7 @@ service: elidebi
 provider:
   name: aws
   runtime: nodejs8.10
-  stage: staging
+  stage: dev
   region: eu-central-1
   profile: elidebi
   apiKeys:
@@ -29,65 +29,36 @@ provider:
     throttle:
       burstLimit: 200
       rateLimit: 100
+  environment: 
+      RDS_ENDPOINT: ${ssm:rds_endpoint}
+      RDS_ADMIN: ${ssm:rds_admin}
+      RDS_PASSWORD: ${ssm:rds_password}
+  vpc: 
+      securityGroupIds:
+        - sg-e3aea48e 
+      subnetIds:
+        - subnet-7b360110
+        - subnet-cd3a4580
 
 functions:
   create-event:
     handler: events.create
-    environment: 
-      RDS_ENDPOINT: ${ssm:rds_endpoint}
-      RDS_ADMIN: ${ssm:rds_admin}
-      RDS_PASSWORD: ${ssm:rds_password}
-    vpc: 
-      securityGroupIds:
-        - sg-e3aea48e 
-      subnetIds:
-        - subnet-7b360110
-        - subnet-cd3a4580
+    
   lottery-create:
     handler: lottery.create
-    environment: 
-      RDS_ENDPOINT: ${ssm:rds_endpoint}
-      RDS_ADMIN: ${ssm:rds_admin}
-      RDS_PASSWORD: ${ssm:rds_password}
-    vpc: 
-      securityGroupIds:
-        - sg-e3aea48e 
-      subnetIds:
-        - subnet-7b360110
-        - subnet-cd3a4580
+    
   lottery-get-mine:
-    handler: lottery.getMine
-    environment: 
-      RDS_ENDPOINT: ${ssm:rds_endpoint}
-      RDS_ADMIN: ${ssm:rds_admin}
-      RDS_PASSWORD: ${ssm:rds_password}
-    vpc: 
-      securityGroupIds:
-        - sg-e3aea48e 
-      subnetIds:
-        - subnet-7b360110
-        - subnet-cd3a4580
+    handler: lottery.getMine    
     events:
       - http:
           path: lottery/mine
           method: get
           private: true
+  
   members-list:
     handler: members.list
-    environment: 
-      RDS_ENDPOINT: ${ssm:rds_endpoint}
-      RDS_ADMIN: ${ssm:rds_admin}
-      RDS_PASSWORD: ${ssm:rds_password}
-    vpc: 
-      securityGroupIds:
-        - sg-e3aea48e 
-      subnetIds:
-        - subnet-7b360110
-        - subnet-cd3a4580
     events:
       - http:
           path: members
           method: get
           private: true
-
-      
