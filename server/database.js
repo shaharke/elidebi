@@ -1,6 +1,4 @@
-'use strict';
-
-const { Client } = require('pg')
+const { Client } = require('pg');
 
 function newDatabaseClient() {
   return new Client({
@@ -12,15 +10,8 @@ function newDatabaseClient() {
   })
 }
 
-exports.list = async (event, context) => {
+exports.connect = async () => {
   const client = newDatabaseClient();
   await client.connect();
-
-  const res = await client.query('SELECT * FROM members');
-  const members = res.rows;
-  
-  return {
-    statusCode: 200,
-    body: JSON.stringify({ members })
-  }
-};
+  return client;
+}

@@ -27,7 +27,9 @@ exports.decode = async (token) => {
   const kid = header.kid;
   // download the public keys
   return new Promise((resolve, reject) => {
+    console.log('Getting keys');
     https.get(keys_url, (response) => {
+      console.log('Received response');
       if (response.statusCode == 200) {
         response.on('data', async (body) => {
           const keys = JSON.parse(body)['keys'];

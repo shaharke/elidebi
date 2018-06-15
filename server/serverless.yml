@@ -11,7 +11,7 @@
 #
 # Happy Coding!
 
-service: elidebi
+service: elidebi-main
 
 provider:
   name: aws
@@ -33,12 +33,12 @@ provider:
       RDS_ENDPOINT: ${ssm:rds_endpoint}
       RDS_ADMIN: ${ssm:rds_admin}
       RDS_PASSWORD: ${ssm:rds_password}
-  vpc: 
-      securityGroupIds:
-        - sg-e3aea48e 
-      subnetIds:
-        - subnet-7b360110
-        - subnet-cd3a4580
+#  vpc: 
+#      securityGroupIds:
+#        - sg-e3aea48e 
+#      subnetIds:
+#        - subnet-7b360110
+#        - subnet-cd3a4580
 
 functions:
   create-event:
@@ -53,7 +53,17 @@ functions:
       - http:
           path: lottery/mine
           method: get
-          private: true
+          cors:
+            origin: 'https://www.hadamba.com'
+
+  auth:
+    handler: auth.do
+    events:
+      - http:
+          path: auth
+          method: post
+          cors:
+            origin: 'https://www.hadamba.com'
   
   members-list:
     handler: members.list
@@ -63,10 +73,4 @@ functions:
           method: get
           private: true
 
-  login:
-    handler: login.do
-    events:
-      - http:
-          path: login
-          method: post
-          private: true
+  

@@ -1,6 +1,7 @@
 const _ = require('lodash');
 
-const { Client } = require('pg')
+const { connect } = require('database');
+const { decode } = require('decode-verify-jwt');
 
 async function loadMembers(client) {
   const res = await client.query("SELECT id FROM members");
@@ -12,9 +13,9 @@ async function selectEvent(client) {
   return res.rows[0].id;
 }
 
-async function selectDrawByUser(client, user) {
-  const statement = "SELECT members.*  FROM lotteries INNER JOIN members ON lotteries.to_member_id = members.id WHERE from_member_id = $1"
-  const values = [user]
+async function selectDrawByMemberId(client, memberId) {
+  const statement = "SELECT members.*  FROM lotteries INNER JOIN members ON lotteries.to_member_id = members.id WHERE lotteries.from_member_id = $1"
+  const values = [memberId]
   const res = await client.query(statement, values)
   return res.rows[0];
 }
@@ -42,19 +43,25 @@ function saveDraw(client, eventId, draw) {
   
 }
 
-function newDatabaseClient() {
-  return new Client({
-    host: process.env.RDS_ENDPOINT,
-    database: 'elidebi',
-    user: process.env.RDS_ADMIN,
-    password: process.env.RDS_PASSWORD,
-    port: 5432,
-  })
+async function getUser(event) {
+  const token = event.queryStringParameters.id_token;
+  const userClaims = await decode(token);
+  return userClaims.email;
+}
+
+function response(code, body) {
+  return {
+    statusCode: code,
+    body: body ? JSON.stringify(body) : body,
+    headers: {
+      "Access-Control-Allow-Origin" : "https://www.hadamba.com", // Required for CORS support to work
+      "Access-Control-Allow-Credentials" : true // Required for cookies, authorization headers with HTTPS
+    }
+  }
 }
 
 exports.create = async (event, context) => {
-  const client = newDatabaseClient();
-  await client.connect();
+  const client = await connect()
 
   const memeberList = await loadMembers(client);
   const eventId = await selectEvent(client);
@@ -68,16 +75,18 @@ exports.create = async (event, context) => {
 };
 
 exports.getMine = async (event, context) => {
-  const client = newDatabaseClient();
-  await client.connect();
-
-  const { user } = event.queryStringParameters;
-  console.log('Getting draw for user', user);
-  const myDraw = await selectDrawByUser(client, user);
-  return {
-    statusCode: 200,
-    body: JSON.stringify(myDraw)
+  try {
+    const memberId = event.queryStringParameters.member_id;
+    console.log('Member', memberId);
+  
+    const client = await connect();
+    const myDraw = await selectDrawByMemberId(client, memberId);
+    return response(200, myDraw);
+  } catch (e) {
+    console.error(e);
+    return response(500, {error_message: e.message});
   }
+  
 }
 
 
