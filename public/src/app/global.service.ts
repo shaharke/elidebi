@@ -19,7 +19,7 @@ export class GlobalService {
     )
   }
   getDraw(): Observable<any> {
-    const token:string = this.cookieService.get('id_token');
+    const token: string = this.cookieService.get('id_token');
     return this.httpClient.get('https://z5vr51yi5k.execute-api.eu-central-1.amazonaws.com/dev/lottery/mine?id_token=' + token).pipe(
       map(res =>{
         return res.json();

@@ -10,19 +10,18 @@
 <button mat-icon-button [matMenuTriggerFor]="appMenu">
   <mat-icon>more_vert</mat-icon>
 </button> -->
-<div class="container-fluid" *ngIf="!showLoader">
-<div class="countdown">
-  <div class="title">אלי דבי בעוד</div>
-  <countdown-timer [end]="'2018-09-07 15:00:00'"></countdown-timer>
+<div class="top-tri"></div>
+<div class="content" *ngIf="!showLoader">
+
+  <div class="countdown">
+    <div class="title">אלי דבי בעוד</div>
+    <countdown-timer [end]="'2018-09-07 15:00:00'"></countdown-timer>
+  </div>
+  <div class="present">
+    <button class="btn btn-primary" (click)="showLottery()">תוצאות ההגרלה</button>
+    <app-random-words *ngIf="isShowLottery" [words]="members"></app-random-words>
+    <div class="draw" *ngIf="isShowDraw" [@enterAnimation] (click)="clickCounter()">{{draw}}ttt</div>
+    <img src="../assets/easter_egg.gif" alt="" class="egg" *ngIf="showEgg">
+  </div>
 </div>
-<div class="present">
-  <button class="btn btn-primary" (click)="showLottery()">תוצאות ההגרלה</button>
-  <app-random-words *ngIf="isShowLottery" [words]="members"></app-random-words>
-  <div class="draw" *ngIf="isShowDraw" [@enterAnimation]>{{draw}}</div>
-</div>
-</div>
-
-
-
-
-
+<div class="bottom-tri"></div>
