@@ -1,6 +1,6 @@
 {
-  "name": "hadamba-web-app",
-  "short_name": "hadamba-web-app",
+  "name": "hadamba",
+  "short_name": "hadamba",
   "theme_color": "#7cc0f6",
   "background_color": "#40a0ec",
   "display": "fullscreen",
