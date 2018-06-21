@@ -42,7 +42,7 @@ exports.decode = async (token) => {
           }, -1)
           if (keyIndex == -1) {
               console.log('Public key not found in jwks.json');
-              reject('Public key not found in jwks.json');
+              reject(new Error('Public key not found in jwks.json'));
           }
           // construct the public key
           try {
@@ -55,16 +55,16 @@ exports.decode = async (token) => {
             // additionally we can verify the token expiration
             const currentTs = Math.floor(new Date() / 1000);
             if (currentTs > claims.exp) {
-                reject('Token is expired');
+                reject(new Error('Token is expired'));
             }
             // and the Audience (use claims.client_id if verifying an access token)
             if (claims.aud != appClientId) {
-              reject('Token was not issued for this audience');
+              reject(new Error('Token was not issued for this audience'));
             }
             resolve(claims);  
           } catch(e) {
             console.error(e);
-            reject(`Signature verification failed: ${e.message}`);
+            reject(new Error(`Signature verification failed: ${e.message}`));
           }
         })
       }

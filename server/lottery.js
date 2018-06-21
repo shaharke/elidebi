@@ -2,6 +2,7 @@ const _ = require('lodash');
 
 const { connect } = require('database');
 const { decode } = require('decode-verify-jwt');
+const { AuthError } = require('errors');
 
 async function loadMembers(client) {
   const res = await client.query("SELECT id FROM members");
@@ -13,10 +14,10 @@ async function selectEvent(client) {
   return res.rows[0].id;
 }
 
-async function selectDrawByMemberId(client, memberId) {
-  const statement = "SELECT members.*  FROM lotteries INNER JOIN members ON lotteries.to_member_id = members.id WHERE lotteries.from_member_id = $1"
-  const values = [memberId]
-  const res = await client.query(statement, values)
+async function selectDrawForMember(client, member) {
+  const statement = "SELECT members.*  FROM lotteries INNER JOIN members ON lotteries.to_member_id = members.id WHERE lotteries.from_member_id = $1";
+  const values = [member.id];
+  const res = await client.query(statement, values);
   return res.rows[0];
 }
 
@@ -48,18 +49,34 @@ function saveDraw(client, eventId, draw) {
   
 }
 
-async function getUser(event) {
-  const token = event.queryStringParameters.id_token;
-  const userClaims = await decode(token);
-  return userClaims.email;
+async function authenticate(client, event) {
+  try {
+    const token = event.queryStringParameters.id_token;
+    const userClaims = await decode(token);
+    const email = userClaims.email;
+
+    const response = await client.query('SELECT * FROM members WHERE email = $1', [email])
+    const member = response.rows[0];
+    return member;
+  } catch (e) {
+    throw new AuthError(e.message);
+  }
+  
 }
 
-function response(code, body) {
+async function getMemberById(client, event) {
+  const memberId = event.queryStringParameters.member_id;
+  const response = await client.query('SELECT * FROM members WHERE id = $1', [memberId])
+  const member = response.rows[0];
+  return member;
+}
+
+function response(code, body, domain) {
   return {
     statusCode: code,
     body: body ? JSON.stringify(body) : body,
     headers: {
-      "Access-Control-Allow-Origin" : "*", // Required for CORS support to work
+      "Access-Control-Allow-Origin" : domain ? domain : "*", // Required for CORS support to work
       "Access-Control-Allow-Credentials" : true // Required for cookies, authorization headers with HTTPS
     }
   }
@@ -80,19 +97,31 @@ exports.run = async (event, context) => {
   };
 };
 
-exports.getMine = async (event, context) => {
-  try {
-    const memberId = event.queryStringParameters.member_id;
-    console.log('Member', memberId);
-  
+exports.getMine = async (event) => {
+  try {  
     const client = await connect();
-    const myDraw = await selectDrawByMemberId(client, memberId);
+    const member = await authenticate(client, event)
+    const myDraw = await selectDrawForMember(client, member);
     return response(200, myDraw);
   } catch (e) {
     console.error(e);
+    if (e instanceof AuthError) {
+      return response(401, {error_message: e.message});
+    }
     return response(500, {error_message: e.message});
   }
-  
+}
+
+exports.getMineTest = async (event) => {
+  try {
+    const client = await connect();
+    const member = await getMemberById(client, event)
+    const myDraw = await selectDrawForMember(client, member);
+    return response(200, myDraw, '*');
+  } catch (e) {
+    console.error(e);
+    return response(500, {error_message: e.message}, '*');
+  }
 }
 
 

@@ -59,10 +59,10 @@ functions:
           path: lottery/mine
           method: get
           cors:
-            origin: 'https://www.hadamba.com'
+            origin: '*'
 
   lottery-get-mine-token:
-    handler: lottery.getMine    
+    handler: lottery.getMineTest   
     events:
       - http:
           path: lottery/mine-token
@@ -71,15 +71,6 @@ functions:
           cors:
             origin: '*'
 
-  auth:
-    handler: auth.do
-    events:
-      - http:
-          path: auth
-          method: post
-          cors:
-            origin: 'https://www.hadamba.com'
-  
   members-list:
     handler: members.list
     events:
