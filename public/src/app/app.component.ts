@@ -20,7 +20,7 @@ import { CookieService } from 'ngx-cookie-service';
         ]),
         transition(':leave', [
           style({ opacity: '*' }),
-          animate('2000ms', style({ opacity: 0 }))
+          animate('10ms', style({ opacity: 0 }))
         ])
       ]
     )
@@ -55,7 +55,7 @@ export class AppComponent implements OnInit, OnDestroy {
         this.members.push(res.members[i].nickname);
       }
       this.global.getDraw().subscribe( resDraw=> {
-        this.draw = resDraw.last_name;
+        this.draw = resDraw.first_name + ' ' + resDraw.last_name;
         this.showLoader = false;
       })
     })

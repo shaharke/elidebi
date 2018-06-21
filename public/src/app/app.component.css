@@ -36,3 +36,6 @@ div.present div.draw {
     font-size: 40px;
     margin-top: 60px;
 }
+countdown-timer, .date {
+    font-size: 28px;
+}
