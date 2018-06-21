@@ -89,6 +89,8 @@ export class AppComponent implements OnInit, OnDestroy {
     this.trigger.openMenu();
   }
   showLottery() {
+    this.showEgg = false;
+    this.isShowDraw = false;
     this.isShowLottery = true;
     setTimeout(()=>{
       this.isShowLottery = false;
