@@ -1,3 +1,4 @@
 export const environment = {
-  production: true
+  production: true,
+  authRedirectURL: "http://www.hadamba.com"
 };

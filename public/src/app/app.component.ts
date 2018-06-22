@@ -6,6 +6,7 @@ import { trigger, transition, style, animate } from '@angular/animations';
 import { ActivatedRoute, Params } from "@angular/router";
 import { componentDestroyed } from "./componentDestroyed";
 import { CookieService } from 'ngx-cookie-service';
+import { environment } from '../environments/environment';
 
 @Component({
   selector: 'app-root',
@@ -68,7 +69,7 @@ export class AppComponent implements OnInit, OnDestroy {
       }, {})
       this.token = hashParams['id_token'];
       if (!this.token) {
-        window.location.replace("https://auth.hadamba.com/login?response_type=token&client_id=4hiaorc0v5d7dnv1nl1fq8dbqa&redirect_uri=http://localhost:4200");
+        window.location.replace("https://auth.hadamba.com/login?response_type=token&client_id=4hiaorc0v5d7dnv1nl1fq8dbqa&redirect_uri=" + environment.authRedirectURL);
       } else {
         this.cookieService.set('id_token', this.token);
       }
