@@ -68,3 +68,6 @@ ansible/vault-pass
 
 #DS Store
 .DS_Store
+
+# Distribution
+dist
