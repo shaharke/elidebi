@@ -1,8 +1,8 @@
 const _ = require('lodash');
 
 const { connect } = require('database');
-const { decode } = require('decode-verify-jwt');
 const { AuthError } = require('errors');
+const { authenticate } = require('auth')
 
 async function loadMembers(client) {
   const res = await client.query("SELECT id FROM members");
@@ -46,21 +46,6 @@ function saveDraw(client, eventId, draw) {
     return client.query(statement, values);
   })
   return Promise.all(inserts);
-  
-}
-
-async function authenticate(client, event) {
-  try {
-    const token = event.queryStringParameters.id_token;
-    const userClaims = await decode(token);
-    const email = userClaims.email;
-
-    const response = await client.query('SELECT * FROM members WHERE email = $1', [email])
-    const member = response.rows[0];
-    return member;
-  } catch (e) {
-    throw new AuthError(e.message);
-  }
   
 }
 

@@ -1,30 +1,38 @@
 'use strict';
 
-const { Client } = require('pg')
-
-function newDatabaseClient() {
-  return new Client({
-    host: process.env.RDS_ENDPOINT,
-    database: 'elidebi',
-    user: process.env.RDS_ADMIN,
-    password: process.env.RDS_PASSWORD,
-    port: 5432,
-  })
-}
+const { connect } = require('database');
+const { authenticate } = require('auth');
 
 exports.list = async (event, context) => {
-  const client = newDatabaseClient();
-  await client.connect();
-
-  const res = await client.query('SELECT * FROM members');
-  const members = res.rows;
+  try {
+    const client = await connect();
+    await authenticate(client, event);
   
-  return {
-    statusCode: 200,
-    body: JSON.stringify({ members }),
-    headers: {
-      "Access-Control-Allow-Origin" : "*", // Required for CORS support to work
-      "Access-Control-Allow-Credentials" : true // Required for cookies, authorization headers with HTTPS
+    const res = await client.query('SELECT * FROM members');
+    const members = res.rows;
+    
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ members }),
+      headers: {
+        "Access-Control-Allow-Origin" : "*", // Required for CORS support to work
+        "Access-Control-Allow-Credentials" : true // Required for cookies, authorization headers with HTTPS
+      }
+    } 
+  } catch (e) {
+    const client = await connect();
+    await authenticate(client, event);
+
+    const res = await client.query('SELECT * FROM members');
+    const members = res.rows;
+    
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ members }),
+      headers: {
+        "Access-Control-Allow-Origin" : "*", // Required for CORS support to work
+        "Access-Control-Allow-Credentials" : true // Required for cookies, authorization headers with HTTPS
+      }
     }
   }
 };

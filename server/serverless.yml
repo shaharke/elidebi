@@ -77,7 +77,6 @@ functions:
       - http:
           path: members
           method: get
-          private: true
           cors:
             origin: '*'
 
