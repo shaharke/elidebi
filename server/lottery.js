@@ -5,7 +5,7 @@ const { AuthError } = require('errors');
 const { authenticate } = require('auth')
 
 async function loadMembers(client) {
-  const res = await client.query("SELECT id FROM members");
+  const res = await client.query("SELECT email FROM members");
   return res.rows;
 }
 
@@ -15,8 +15,8 @@ async function selectEvent(client) {
 }
 
 async function selectDrawForMember(client, member) {
-  const statement = "SELECT members.*  FROM lotteries INNER JOIN members ON lotteries.to_member_id = members.id WHERE lotteries.from_member_id = $1";
-  const values = [member.id];
+  const statement = "SELECT members.*  FROM lotteries INNER JOIN members ON lotteries.to_member = members.email WHERE lotteries.from_member = $1";
+  const values = [member.email];
   const res = await client.query(statement, values);
   return res.rows[0];
 }
@@ -25,9 +25,9 @@ function draw(memberList) {
   console.log('Shuffling members: ', memberList);
   return _.shuffle(memberList).map((member, index, shuffledList) => {
     if (index != memberList.length - 1) {
-      return { from: member.id, to: shuffledList[index + 1].id};
+      return { from: member.email, to: shuffledList[index + 1].email};
     } else {
-      return { from: member.id, to: shuffledList[0].id};
+      return { from: member.email, to: shuffledList[0].email};
     }
   })
 }
@@ -40,20 +40,13 @@ async function deleteExistingDraw(client, eventId) {
 function saveDraw(client, eventId, draw) {
   console.log('Saving draw', draw);
   const inserts = draw.map((pair) => {
-    const statement = 'INSERT INTO lotteries(event_id, from_member_id, to_member_id) VALUES($1, $2, $3)'
+    const statement = 'INSERT INTO lotteries(event_id, from_member, to_member) VALUES($1, $2, $3)'
     const values = [eventId, pair.from, pair.to];
     console.log("Inserting draw line", values);
     return client.query(statement, values);
   })
   return Promise.all(inserts);
   
-}
-
-async function getMemberById(client, event) {
-  const memberId = event.queryStringParameters.member_id;
-  const response = await client.query('SELECT * FROM members WHERE id = $1', [memberId])
-  const member = response.rows[0];
-  return member;
 }
 
 function response(code, body, domain) {
@@ -94,18 +87,6 @@ exports.getMine = async (event) => {
       return response(401, {error_message: e.message});
     }
     return response(500, {error_message: e.message});
-  }
-}
-
-exports.getMineTest = async (event) => {
-  try {
-    const client = await connect();
-    const member = await getMemberById(client, event)
-    const myDraw = await selectDrawForMember(client, member);
-    return response(200, myDraw, '*');
-  } catch (e) {
-    console.error(e);
-    return response(500, {error_message: e.message}, '*');
   }
 }
 

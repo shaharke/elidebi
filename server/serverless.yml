@@ -61,16 +61,6 @@ functions:
           cors:
             origin: '*'
 
-  lottery-get-mine-token:
-    handler: lottery.getMineTest   
-    events:
-      - http:
-          path: lottery/mine-token
-          method: get
-          private: true
-          cors:
-            origin: '*'
-
   members-list:
     handler: members.list
     events:
