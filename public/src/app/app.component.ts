@@ -51,15 +51,7 @@ export class AppComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.showLoader = true;
     this.members= [];
-    this.global.getMembers().subscribe(res => {
-      for(let i=0; i<res.members.length ; i++) {
-        this.members.push(res.members[i].nickname);
-      }
-      this.global.getDraw().subscribe( resDraw=> {
-        this.draw = resDraw.first_name + ' ' + resDraw.last_name;
-        this.showLoader = false;
-      })
-    })
+    
     this.token = this.cookieService.get('id_token');
     if (!this.token) {
       const hashParams = window.location.hash.substr(1).split('&').reduce((acc, param) => {
@@ -74,6 +66,16 @@ export class AppComponent implements OnInit, OnDestroy {
         this.cookieService.set('id_token', this.token);
       }
     }
+
+    this.global.getMembers().subscribe(res => {
+      for(let i=0; i<res.members.length ; i++) {
+        this.members.push(res.members[i].nickname);
+      }
+      this.global.getDraw().subscribe( resDraw=> {
+        this.draw = resDraw.first_name + ' ' + resDraw.last_name;
+        this.showLoader = false;
+      })
+    })
   }
   ngOnDestroy(){}
 
