@@ -33,6 +33,16 @@ provider:
       RDS_ENDPOINT: ${ssm:rds_endpoint}
       RDS_ADMIN: ${ssm:rds_admin}
       RDS_PASSWORD: ${ssm:rds_password}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/*"
 #  vpc: 
 #      securityGroupIds:
 #        - sg-e3aea48e 
@@ -42,8 +52,8 @@ provider:
 
 functions:
   create-event:
-    handler: events.create
-    
+    handler: events.create  
+
   lottery-run:
     handler: lottery.run
     events:
@@ -69,6 +79,18 @@ functions:
           method: get
           cors:
             origin: '*'
+
+  migrate-members:
+    handler: migrate.migrateMembers
+
+  migrate-events:
+    handler: migrate.migrateEvents
+
+  migreate-lotteries:
+    handler: migrate.migrateLotteries
+  
+  
+    
 
 
   
