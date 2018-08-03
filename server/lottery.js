@@ -1,24 +1,28 @@
 const _ = require('lodash');
+const AWS = require('aws-sdk');
 
-const { connect } = require('database');
 const { AuthError } = require('errors');
-const { authenticate } = require('auth')
+const { authenticateDynamo: authenticate } = require('auth')
+const { list: listMembers } = require('./dao/members');
+const { get: getEvent } = require('./dao/events');
+const { getDraw: getDraw} = require('./dao/lotteries');
+const { get: getMember } = require('./dao/members');
 
-async function loadMembers(client) {
-  const res = await client.query("SELECT email FROM members");
-  return res.rows;
+async function loadMembers(ddb) {
+  const members = await listMembers(ddb);
+  return members.map((member) => member.email);
 }
 
-async function selectEvent(client) {
-  const res = await client.query("SELECT id, date FROM events WHERE date_part('year', date) = date_part('year', current_date)")
-  return res.rows[0].id;
+async function selectEvent(ddb) {
+  const event = await getEvent(ddb);
+  return event.year;
 }
 
-async function selectDrawForMember(client, member) {
-  const statement = "SELECT members.*  FROM lotteries INNER JOIN members ON lotteries.to_member = members.email WHERE lotteries.from_member = $1";
-  const values = [member.email];
-  const res = await client.query(statement, values);
-  return res.rows[0];
+async function selectDrawForMember(ddb, member) {
+  const event = await getEvent(ddb);
+  const draw = await getDraw(ddb, member, event);
+  const toMember = await getMember(ddb, draw.to_member);
+  return toMember;
 }
 
 function draw(memberList) {
@@ -60,26 +64,28 @@ function response(code, body, domain) {
   }
 }
 
-exports.run = async (event, context) => {
-  const client = await connect()
+// exports.run = async (event, context) => {
+//   const client = await connect()
 
-  const memeberList = await loadMembers(client);
-  const eventId = await selectEvent(client);
-  console.log('Selected event', eventId);
-  await deleteExistingDraw(client, eventId);
-  const drawResult = draw(memeberList);
-  await saveDraw(client, eventId, drawResult);
+//   const memeberList = await loadMembers(client);
+//   const year = await selectEvent(client);
+//   console.log('Selected event', year);
+//   await deleteExistingDraw(client, eventId);
+//   const drawResult = draw(memeberList);
+//   await saveDraw(client, eventId, drawResult);
   
-  return {
-    statusCode: 200
-  };
-};
+//   return {
+//     statusCode: 200
+//   };
+// };
 
 exports.getMine = async (event) => {
-  try {  
-    const client = await connect();
-    const member = await authenticate(client, event)
-    const myDraw = await selectDrawForMember(client, member);
+  try { 
+    AWS.config.update({region: 'eu-central-1'});
+    const ddb = new AWS.DynamoDB.DocumentClient();
+
+    const member = await authenticate(ddb, event)
+    const myDraw = await selectDrawForMember(ddb, member);
     return response(200, myDraw);
   } catch (e) {
     console.error(e);

@@ -1,8 +1,9 @@
 'use strict';
 
+const AWS = require('aws-sdk');
 const { authenticateDynamo: authenticate } = require('auth');
 const { AuthError } = require('errors');
-const AWS = require('aws-sdk');
+const { list: listMembers } = require('./dao/members');
 
 function response(code, body, domain) {
   return {
@@ -15,24 +16,12 @@ function response(code, body, domain) {
   }
 }
 
-async function getMembers(ddb) {
-  return new Promise((resolve, reject) => {
-    ddb.scan( { TableName: "members" }, (err, data) => {
-      if (err) {
-        reject(err);
-        return;
-      }
-      resolve(data.Items);
-    })
-  })
-}
-
 exports.list = async (event, context) => {
   try {
     AWS.config.update({region: 'eu-central-1'});
     const ddb = new AWS.DynamoDB.DocumentClient();
     await authenticate(ddb, event);
-    const members = await getMembers(ddb);
+    const members = await listMembers(ddb);
     return response(200, { members });
   } catch (e) {
     console.error(e);
