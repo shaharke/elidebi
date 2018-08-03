@@ -1,5 +1,6 @@
 const { decode } = require('decode-verify-jwt');
 const { AuthError } = require('errors');
+const { get: getMember} = require('./dao/members');
 
 exports.authenticate = async function (client, event) {
   try {
@@ -27,23 +28,11 @@ exports.authenticateDynamo = async function (ddb, event) {
     }
     const userClaims = await decode(token);
     const email = userClaims.email;
-
-    const query = {
-      TableName: "members",
-      Key: {
-        email
-      }
+    const member = await getMember(ddb, email);
+    if (!member) {
+      throw new AuthError(`${email} is not a member`);
     }
-
-    return new Promise((resolve, reject) => {
-      ddb.get(query, (err, member) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        resolve(member);
-      })
-    })
+    return member
   } catch (e) {
     throw new AuthError(e.message);
   }
