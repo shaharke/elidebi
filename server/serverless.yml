@@ -39,21 +39,15 @@ provider:
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
       Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/*"
-#  vpc: 
-#      securityGroupIds:
-#        - sg-e3aea48e 
-#      subnetIds:
-#        - subnet-7b360110
-#        - subnet-cd3a4580
 
 functions:
-  # lottery-run:
-  #   handler: lottery.run
-  #   events:
-  #     - http:
-  #         path: lottery/run
-  #         method: post
-  #         private: true
+  lottery-run:
+    handler: lottery.run
+    events:
+      - http:
+          path: lottery/run
+          method: post
+          private: true
           
   lottery-get-mine:
     handler: lottery.getMine    
