@@ -24,3 +24,29 @@ exports.getDraw = async function (ddb, member, event) {
     })
   })
 }
+
+exports.getLastYearDraw = async function(ddb) {
+  return new Promise((resolve, reject) => {
+    const query = {
+      TableName : "lotteries",
+      FilterExpression: "#year = :yyyy",
+      ExpressionAttributeNames: {
+        '#year': 'year',
+        "#fm": "from_member", 
+        "#tm": "to_member"
+      },
+      ExpressionAttributeValues: {
+        ":yyyy": moment().year() - 1,
+      },
+      ProjectionExpression: "#fm, #tm"
+    }
+
+    ddb.scan(query, (err, data) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve(data.Items);
+    })
+  })
+}

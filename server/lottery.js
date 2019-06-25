@@ -7,7 +7,7 @@ const { AuthError } = require('errors');
 const { authenticateDynamo: authenticate } = require('auth')
 const { list: listMembers } = require('./dao/members');
 const { get: getEvent } = require('./dao/events');
-const { getDraw: getDraw} = require('./dao/lotteries');
+const { getDraw, getLastYearDraw } = require('./dao/lotteries');
 const { get: getMember } = require('./dao/members');
 
 async function loadMembers(ddb) {
@@ -31,9 +31,9 @@ function draw(memberList) {
   console.log('Shuffling members: ', memberList);
   return _.shuffle(memberList).map((member, index, shuffledList) => {
     if (index != memberList.length - 1) {
-      return { from: member, to: shuffledList[index + 1]};
+      return { from_member: member, to_member: shuffledList[index + 1]};
     } else {
-      return { from: member, to: shuffledList[0]};
+      return { from_member: member, to_member: shuffledList[0]};
     }
   })
 }
@@ -43,8 +43,8 @@ function saveDraw(ddb, drawResult) {
     const params = {
       TableName: 'lotteries',
       Item: {
-        'from_member' : draw.from,
-        'to_member': draw.to,
+        'from_member' : draw.from_member,
+        'to_member': draw.to_member,
         'year': moment().year()
       },
       ReturnValues: "ALL_OLD"
@@ -53,10 +53,10 @@ function saveDraw(ddb, drawResult) {
     return new Promise((resolve) => {
       ddb.put(params, function(err, data) {
         if (err) {
-          console.error('Error while inserting lottery', {lottery_member: draw.from, error_message: err.message})
+          console.error('Error while inserting lottery', {lottery_member: draw.from_member, error_message: err.message})
           resolve(err.message);
         } else {
-          console.log("Successfully created lottery", { lottery_member: draw.from, data: data});
+          console.log("Successfully created lottery", { lottery_member: draw.from_member});
           resolve(data);
         }
       });
@@ -75,6 +75,19 @@ function response(code, body, domain) {
   }
 }
 
+function duplicateDraw(thisYearDraw, lastYearDraw) {
+  for (let pair of thisYearDraw) {
+    for (let lyPair of lastYearDraw) {
+      if (pair.from_member == lyPair.from_member && 
+          pair.to_member == lyPair.to_member) {
+            console.log("Found duplicate", { pair, lyPair});
+            return true;
+          }
+    }
+  }
+  return false;
+}
+
 exports.run = async (event, context) => {
   const AWS = require('aws-sdk');
   AWS.config.update({region: 'eu-central-1'});
@@ -83,7 +96,13 @@ exports.run = async (event, context) => {
   const memeberList = await loadMembers(ddb);
   const year = await selectEvent(ddb);
   console.log('Selected event', year);
-  const drawResult = draw(memeberList);
+  const lastYearDraw = await getLastYearDraw(ddb)
+  console.log("This year", lastYearDraw)
+  let drawResult;
+  do {
+    drawResult = draw(memeberList);
+    console.log("This year", drawResult)
+  } while(duplicateDraw(drawResult, lastYearDraw));
   await saveDraw(ddb, drawResult);
   return response(200);
 };
