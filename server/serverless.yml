@@ -29,10 +29,6 @@ provider:
     throttle:
       burstLimit: 200
       rateLimit: 100
-  environment: 
-      RDS_ENDPOINT: ${ssm:rds_endpoint}
-      RDS_ADMIN: ${ssm:rds_admin}
-      RDS_PASSWORD: ${ssm:rds_password}
   iamRoleStatements:
     - Effect: Allow
       Action:
