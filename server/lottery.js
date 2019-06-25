@@ -1,5 +1,7 @@
 const _ = require('lodash');
 const AWS = require('aws-sdk');
+const Promise = require('bluebird');
+const moment = require('moment');
 
 const { AuthError } = require('errors');
 const { authenticateDynamo: authenticate } = require('auth')
@@ -29,28 +31,37 @@ function draw(memberList) {
   console.log('Shuffling members: ', memberList);
   return _.shuffle(memberList).map((member, index, shuffledList) => {
     if (index != memberList.length - 1) {
-      return { from: member.email, to: shuffledList[index + 1].email};
+      return { from: member, to: shuffledList[index + 1]};
     } else {
-      return { from: member.email, to: shuffledList[0].email};
+      return { from: member, to: shuffledList[0]};
     }
   })
 }
 
-async function deleteExistingDraw(client, eventId) {
-  console.log('Deleteing existing draw', {event_id: eventId});
-  await client.query('DELETE FROM lotteries WHERE event_id = $1', [eventId]);
-}
+function saveDraw(ddb, drawResult) {
+  return Promise.map(drawResult, (draw) => {
+    const params = {
+      TableName: 'lotteries',
+      Item: {
+        'from_member' : draw.from,
+        'to_member': draw.to,
+        'year': moment().year()
+      },
+      ReturnValues: "ALL_OLD"
+    };
 
-function saveDraw(client, eventId, draw) {
-  console.log('Saving draw', draw);
-  const inserts = draw.map((pair) => {
-    const statement = 'INSERT INTO lotteries(event_id, from_member, to_member) VALUES($1, $2, $3)'
-    const values = [eventId, pair.from, pair.to];
-    console.log("Inserting draw line", values);
-    return client.query(statement, values);
+    return new Promise((resolve) => {
+      ddb.put(params, function(err, data) {
+        if (err) {
+          console.error('Error while inserting lottery', {lottery_member: draw.from, error_message: err.message})
+          resolve(err.message);
+        } else {
+          console.log("Successfully created lottery", { lottery_member: draw.from, data: data});
+          resolve(data);
+        }
+      });
+    });
   })
-  return Promise.all(inserts);
-  
 }
 
 function response(code, body, domain) {
@@ -64,20 +75,18 @@ function response(code, body, domain) {
   }
 }
 
-// exports.run = async (event, context) => {
-//   const client = await connect()
+exports.run = async (event, context) => {
+  const AWS = require('aws-sdk');
+  AWS.config.update({region: 'eu-central-1'});
+  const ddb = new AWS.DynamoDB.DocumentClient();
 
-//   const memeberList = await loadMembers(client);
-//   const year = await selectEvent(client);
-//   console.log('Selected event', year);
-//   await deleteExistingDraw(client, eventId);
-//   const drawResult = draw(memeberList);
-//   await saveDraw(client, eventId, drawResult);
-  
-//   return {
-//     statusCode: 200
-//   };
-// };
+  const memeberList = await loadMembers(ddb);
+  const year = await selectEvent(ddb);
+  console.log('Selected event', year);
+  const drawResult = draw(memeberList);
+  await saveDraw(ddb, drawResult);
+  return response(200);
+};
 
 exports.getMine = async (event) => {
   try { 
