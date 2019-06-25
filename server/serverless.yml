@@ -51,9 +51,6 @@ provider:
 #        - subnet-cd3a4580
 
 functions:
-  create-event:
-    handler: events.create  
-
   # lottery-run:
   #   handler: lottery.run
   #   events:
