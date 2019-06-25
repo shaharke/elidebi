@@ -71,17 +71,7 @@ functions:
           path: members
           method: get
           cors:
-            origin: '*'
-
-  migrate-members:
-    handler: migrate.migrateMembers
-
-  migrate-events:
-    handler: migrate.migrateEvents
-
-  migreate-lotteries:
-    handler: migrate.migrateLotteries
-  
+            origin: '*'  
   
     
 
