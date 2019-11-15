@@ -15,7 +15,7 @@ service: elidebi-main
 
 provider:
   name: aws
-  runtime: nodejs8.10
+  runtime: nodejs10.x
   stage: dev
   region: eu-central-1
   profile: elidebi
