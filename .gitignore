@@ -71,3 +71,6 @@ ansible/vault-pass
 
 # Distribution
 dist
+
+# Webstorm
+.idea
