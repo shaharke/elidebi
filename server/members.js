@@ -1,8 +1,8 @@
 'use strict';
 
 const AWS = require('aws-sdk');
-const { authenticateDynamo: authenticate } = require('auth');
-const { AuthError } = require('errors');
+const { authenticateDynamo: authenticate } = require('./auth');
+const { AuthError } = require('./errors');
 const { list: listMembers } = require('./dao/members');
 
 function response(code, body, domain) {

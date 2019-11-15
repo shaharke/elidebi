@@ -1,5 +1,5 @@
-const { decode } = require('decode-verify-jwt');
-const { AuthError } = require('errors');
+const { decode } = require('./decode-verify-jwt');
+const { AuthError } = require('./errors');
 const { get: getMember} = require('./dao/members');
 
 exports.authenticate = async function (client, event) {
@@ -17,7 +17,7 @@ exports.authenticate = async function (client, event) {
   } catch (e) {
     throw new AuthError(e.message);
   }
-  
+
 }
 
 exports.authenticateDynamo = async function (ddb, event) {
@@ -36,6 +36,6 @@ exports.authenticateDynamo = async function (ddb, event) {
   } catch (e) {
     throw new AuthError(e.message);
   }
-  
+
 }
 

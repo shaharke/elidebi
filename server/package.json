@@ -5,6 +5,7 @@
   "main": "events.js",
   "dependencies": {
     "bluebird": "3.5.1",
+    "lodash": "^4.17.15",
     "moment": "2.22.2",
     "node-jose": "1.0.0",
     "pg": "7.4.3"

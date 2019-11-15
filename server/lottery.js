@@ -3,8 +3,8 @@ const AWS = require('aws-sdk');
 const Promise = require('bluebird');
 const moment = require('moment');
 
-const { AuthError } = require('errors');
-const { authenticateDynamo: authenticate } = require('auth')
+const { AuthError } = require('./errors');
+const { authenticateDynamo: authenticate } = require('./auth')
 const { list: listMembers } = require('./dao/members');
 const { get: getEvent } = require('./dao/events');
 const { getDraw, getLastYearDraw } = require('./dao/lotteries');
@@ -78,7 +78,7 @@ function response(code, body, domain) {
 function duplicateDraw(thisYearDraw, lastYearDraw) {
   for (let pair of thisYearDraw) {
     for (let lyPair of lastYearDraw) {
-      if (pair.from_member == lyPair.from_member && 
+      if (pair.from_member == lyPair.from_member &&
           pair.to_member == lyPair.to_member) {
             console.log("Found duplicate", { pair, lyPair});
             return true;
@@ -108,7 +108,7 @@ exports.run = async (event, context) => {
 };
 
 exports.getMine = async (event) => {
-  try { 
+  try {
     AWS.config.update({region: 'eu-central-1'});
     const ddb = new AWS.DynamoDB.DocumentClient();
 
